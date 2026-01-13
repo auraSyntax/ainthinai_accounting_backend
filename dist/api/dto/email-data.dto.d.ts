@@ -1,0 +1,11 @@
+export declare class EmailDataDto {
+    recipients: string[];
+    subject: string;
+    mailTemplateName: string;
+    serviceProvider?: string;
+    data?: Record<string, any>;
+    ccList?: string[];
+    bccList?: string[];
+    fromName?: string;
+    fromEmail?: string;
+}
