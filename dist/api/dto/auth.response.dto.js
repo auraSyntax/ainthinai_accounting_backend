@@ -7,7 +7,7 @@ class AuthResponseDto {
     userName;
     expirationTime;
     email;
-    userType;
+    roleId;
     profile;
 }
 exports.AuthResponseDto = AuthResponseDto;

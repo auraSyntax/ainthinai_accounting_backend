@@ -11,6 +11,9 @@ const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const typeorm_1 = require("@nestjs/typeorm");
 const jwt_1 = require("@nestjs/jwt");
+const user_1 = require("./entity/user");
+const auth_controller_1 = require("./api/controller/auth-controller");
+const auth_service_1 = require("./service/auth-service");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -31,12 +34,12 @@ exports.AppModule = AppModule = __decorate([
                     username: configService.get('DB_USERNAME'),
                     password: configService.get('DB_PASSWORD'),
                     database: configService.get('DB_NAME'),
-                    entities: [],
-                    synchronize: true,
+                    entities: [user_1.User],
+                    synchronize: false,
                     logging: true,
                 }),
             }),
-            typeorm_1.TypeOrmModule.forFeature([]),
+            typeorm_1.TypeOrmModule.forFeature([user_1.User]),
             jwt_1.JwtModule.registerAsync({
                 imports: [config_1.ConfigModule],
                 inject: [config_1.ConfigService],
@@ -46,8 +49,8 @@ exports.AppModule = AppModule = __decorate([
                 }),
             }),
         ],
-        controllers: [],
-        providers: [],
+        controllers: [auth_controller_1.AuthController],
+        providers: [auth_service_1.AuthService],
     })
 ], AppModule);
 //# sourceMappingURL=app.module.js.map

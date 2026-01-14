@@ -2,6 +2,9 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
+import { User } from './entity/user';
+import { AuthController } from './api/controller/auth-controller';
+import { AuthService } from './service/auth-service';
 
 
 @Module({
@@ -21,13 +24,13 @@ import { JwtModule } from '@nestjs/jwt';
         username: configService.get<string>('DB_USERNAME'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
-        entities: [],
-        synchronize: true,
+        entities: [User],
+        synchronize: false,
         logging: true,
       }),
     }),
 
-    TypeOrmModule.forFeature([]), // ✅ include Services here
+    TypeOrmModule.forFeature([User]),
 
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -38,7 +41,7 @@ import { JwtModule } from '@nestjs/jwt';
       }),
     }),
   ],
-  controllers: [],
-  providers: [],
+  controllers: [AuthController],
+  providers: [AuthService],
 })
 export class AppModule {}

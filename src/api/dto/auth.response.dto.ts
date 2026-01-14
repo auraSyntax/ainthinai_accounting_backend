@@ -1,4 +1,4 @@
-export declare class AuthResponseDto {
+export class AuthResponseDto {
     jwtToken: string;
     refreshToken: string;
     userName: string;
