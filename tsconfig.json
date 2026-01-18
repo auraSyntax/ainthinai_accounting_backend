@@ -18,5 +18,7 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
     "esModuleInterop": true
-  }
+  },
+  "include": ["src/**/*.ts"],       // <- include all TypeScript files in src
+  "exclude": ["node_modules", "dist"]
 }
