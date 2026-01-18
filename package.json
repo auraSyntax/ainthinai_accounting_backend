@@ -20,11 +20,12 @@
     "typeorm": "^0.3.28"
   },
   "devDependencies": {
-    "@types/bcrypt": "^6.0.0",
-    "@types/express": "^5.0.6",
-    "@types/multer": "^2.0.0",
-    "ts-node": "^10.9.2"
-  },
+  "@nestjs/cli": "^11.1.0",
+  "@types/bcrypt": "^6.0.0",
+  "@types/express": "^5.0.6",
+  "@types/multer": "^2.0.0",
+  "ts-node": "^10.9.2"
+},
   "scripts": {
   "start": "nest start",
   "start:dev": "nest start --watch",
