@@ -19,7 +19,7 @@ class UpdateCredentialsDto {
 exports.UpdateCredentialsDto = UpdateCredentialsDto;
 __decorate([
     (0, class_validator_1.IsNotEmpty)(),
-    __metadata("design:type", String)
+    __metadata("design:type", Number)
 ], UpdateCredentialsDto.prototype, "userId", void 0);
 __decorate([
     (0, class_validator_1.IsEmail)(),

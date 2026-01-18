@@ -10,11 +10,11 @@ exports.JwtAuthGuard = void 0;
 const common_1 = require("@nestjs/common");
 const token_service_1 = require("../service/token.service");
 let JwtAuthGuard = class JwtAuthGuard {
-    openPaths = ['/auth/login', '/auth/refresh-token', '/auth/forgot-password', '/auth/reset-password'];
+    publicPrefix = '/api/v1/auth';
     canActivate(context) {
         const request = context.switchToHttp().getRequest();
         const path = request.path;
-        if (this.openPaths.includes(path)) {
+        if (path.startsWith(this.publicPrefix)) {
             return true;
         }
         const authHeader = request.headers.authorization;

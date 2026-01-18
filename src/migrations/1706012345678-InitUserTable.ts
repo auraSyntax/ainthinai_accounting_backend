@@ -13,7 +13,7 @@ export class CreateUsersTable1706012345678 implements MigrationInterface {
                 password VARCHAR(255) NOT NULL,
                 is_active TINYINT(1) NOT NULL,
                 profile VARCHAR(255) NOT NULL,
-                role_id VARCHAR(100) NOT NULL,
+                role_id BIGINT NOT NULL,
                 address VARCHAR(500) NOT NULL,
                 reset_token VARCHAR(255) NULL,
                 is_first_login TINYINT(1) NOT NULL,

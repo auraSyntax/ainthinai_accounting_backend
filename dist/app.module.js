@@ -14,6 +14,13 @@ const jwt_1 = require("@nestjs/jwt");
 const user_1 = require("./entity/user");
 const auth_controller_1 = require("./api/controller/auth-controller");
 const auth_service_1 = require("./service/auth-service");
+const role_1 = require("./entity/role");
+const user_controller_1 = require("./api/controller/user-controller");
+const role_service_1 = require("./service/role-service");
+const user_service_1 = require("./service/user-service");
+const role_controller_1 = require("./api/controller/role-controller");
+const mail_service_1 = require("./service/mail.service");
+const token_service_1 = require("./service/token.service");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -34,12 +41,12 @@ exports.AppModule = AppModule = __decorate([
                     username: configService.get('DB_USERNAME'),
                     password: configService.get('DB_PASSWORD'),
                     database: configService.get('DB_NAME'),
-                    entities: [user_1.User],
+                    entities: [user_1.User, role_1.Role],
                     synchronize: false,
                     logging: true,
                 }),
             }),
-            typeorm_1.TypeOrmModule.forFeature([user_1.User]),
+            typeorm_1.TypeOrmModule.forFeature([user_1.User, role_1.Role]),
             jwt_1.JwtModule.registerAsync({
                 imports: [config_1.ConfigModule],
                 inject: [config_1.ConfigService],
@@ -49,8 +56,8 @@ exports.AppModule = AppModule = __decorate([
                 }),
             }),
         ],
-        controllers: [auth_controller_1.AuthController],
-        providers: [auth_service_1.AuthService],
+        controllers: [auth_controller_1.AuthController, role_controller_1.RoleController, user_controller_1.UserController],
+        providers: [auth_service_1.AuthService, role_service_1.RoleService, user_service_1.UserService, mail_service_1.EmailService, token_service_1.TokenService],
     })
 ], AppModule);
 //# sourceMappingURL=app.module.js.map

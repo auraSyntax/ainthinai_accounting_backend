@@ -4,6 +4,6 @@ export class AuthResponseDto {
     userName: string;
     expirationTime: string;
     email: string;
-    roleId: string;
+    roleId?: number;
     profile: string;
 }

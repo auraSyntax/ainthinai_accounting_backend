@@ -71,4 +71,50 @@ export class AuthService {
         response.profile = user.profile ? baseUrl + user.profile : null!;
         return response;
     }
+
+    async refreshToken(refreshToken: string): Promise<AuthResponseDto> {
+    try {
+      const payload = await this.jwtService.verifyAsync(refreshToken);
+
+      const rememberMe = payload.rememberMe === true;
+
+      const newPayload = {
+        sub: payload.sub,
+        email: payload.email,
+        userType: payload.userType,
+      };
+
+      const jwtExpiry = rememberMe ? '30d' : '15m';
+      const refreshExpiry = rememberMe ? '31d' : '7d';
+
+      const newJwtToken = await this.jwtService.signAsync(newPayload, {
+        expiresIn: jwtExpiry,
+      });
+
+      const refreshPayload = rememberMe ? { ...newPayload, rememberMe: true } : newPayload;
+
+      const newRefreshToken = await this.jwtService.signAsync(refreshPayload, {
+        expiresIn: refreshExpiry,
+      });
+
+      const existing = await this.userRepository.findOneBy({ id: payload.sub });
+
+      const baseUrl = this.configService.get<string>('CLOUDINARY_BASE_URL');
+
+      const response = new AuthResponseDto();
+      response.jwtToken = newJwtToken;
+      response.refreshToken = newRefreshToken;
+      response.expirationTime = jwtExpiry;
+      response.email = payload.email;
+      response.userName = existing?.fullName ?? '';
+      response.roleId = existing?.roleId;
+      response.profile = existing?.profile ? baseUrl + existing.profile : null!;
+
+      return response;
+
+
+    } catch (err) {
+      throw new ServiceException('Invalid or expired refresh token!', 'Unauthorized', HttpStatus.UNAUTHORIZED);
+    }
+  }
 }

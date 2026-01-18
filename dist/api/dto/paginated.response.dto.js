@@ -6,6 +6,8 @@ class PaginatedResponseDto {
     data;
     totalPages;
     currentPage;
+    hasNextPage;
+    hasPreviousPage;
 }
 exports.PaginatedResponseDto = PaginatedResponseDto;
 //# sourceMappingURL=paginated.response.dto.js.map

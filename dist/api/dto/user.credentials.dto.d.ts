@@ -1,5 +1,5 @@
 export declare class UpdateCredentialsDto {
-    userId: string;
+    userId: number;
     newEmail: string;
     newPassword: string;
 }

@@ -27,7 +27,7 @@ export class User {
   profile: string;
 
   @Column({ name: 'role_id' })
-  roleId: string;
+  roleId?: number;
 
   @Column({ name: 'address' })
   address: string;

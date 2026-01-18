@@ -3,4 +3,6 @@ export declare class PaginatedResponseDto<T> {
     data: T[];
     totalPages: number;
     currentPage: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
 }

@@ -1,33 +1,42 @@
-import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Request } from 'express';
 import { TokenService } from '../service/token.service';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
-    private readonly openPaths = ['/auth/login', '/auth/refresh-token', '/auth/forgot-password', '/auth/reset-password']; // Note the leading slash here
 
-    canActivate(context: ExecutionContext): boolean {
-        const request = context.switchToHttp().getRequest<Request>();
-        const path = request.path;
+  // all auth APIs are public
+  private readonly publicPrefix = '/api/v1/auth';
 
-        // Skip JWT validation for open paths
-        if (this.openPaths.includes(path)) {
-            return true;
-        }
+  canActivate(context: ExecutionContext): boolean {
+    const request = context.switchToHttp().getRequest<Request>();
+    const path = request.path;
 
-        const authHeader = request.headers.authorization;
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            throw new UnauthorizedException('Authorization header missing or malformed');
-        }
-
-        const token = authHeader.split(' ')[1];
-        const decoded = TokenService.decodeToken(token);
-        if (!decoded) {
-            throw new UnauthorizedException('Invalid or expired token');
-        }
-
-        // Attach user info to request for later use in controllers
-        (request as any).user = decoded;
-        return true;
+    // ✅ allow login & refresh-token without JWT
+    if (path.startsWith(this.publicPrefix)) {
+      return true;
     }
+
+    // 🔐 everything else requires token
+    const authHeader = request.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      throw new UnauthorizedException('Authorization header missing or malformed');
+    }
+
+    const token = authHeader.split(' ')[1];
+    const decoded = TokenService.decodeToken(token);
+
+    if (!decoded) {
+      throw new UnauthorizedException('Invalid or expired token');
+    }
+
+    (request as any).user = decoded;
+    return true;
+  }
 }
