@@ -16,7 +16,7 @@ import { CurrentUserDetailsDto } from "src/api/dto/current-user-details.dto";
 
 @Injectable()
 export class UserService {
-     constructor(
+  constructor(
     private readonly configService: ConfigService,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
@@ -24,7 +24,7 @@ export class UserService {
     private readonly tokenService: TokenService
   ) { }
 
-    async createUser(dto: UserDto, request: Request): Promise<ResponseDto> {
+  async createUser(dto: UserDto, request: Request): Promise<ResponseDto> {
     await this.validateEmailUniqueness(dto.email, dto.id);
 
     const isNewUser = !dto.id;
@@ -47,20 +47,20 @@ export class UserService {
       user.isFirstLogin = true;
       await this.userRepository.save(user);
 
-      const frontendUrl = this.configService.get<string>('FRONTEND_URL');
-      const resetLink = `${frontendUrl}/new-password?token=${resetToken}`;
+      // const frontendUrl = this.configService.get<string>('FRONTEND_URL');
+      // const resetLink = `${frontendUrl}/new-password?token=${resetToken}`;
 
-      await this.mailService.sendMail(
-        dto.email,
-        'Your Account Has Been Created',
-        {
-          EMAIL: dto.email,
-          USER_NAME: dto.fullName,
-          TEMP_PASSWORD: dto.password,
-          RESET_LINK: resetLink,
-        },
-        'account-creation-template'
-      );
+      // await this.mailService.sendMail(
+      //   dto.email,
+      //   'Your Account Has Been Created',
+      //   {
+      //     EMAIL: dto.email,
+      //     USER_NAME: dto.fullName,
+      //     TEMP_PASSWORD: dto.password,
+      //     RESET_LINK: resetLink,
+      //   },
+      //   'account-creation-template'
+      // );
     }
 
     return new ResponseDto('USER_SAVED');
@@ -117,82 +117,86 @@ export class UserService {
   async getAllUsers(
     page: number,
     size: number,
-    search: string, request: Request
+    search: string,
+    request: Request
   ): Promise<PaginatedResponseDto<UserResponseDto>> {
 
+    // 1️⃣ Authorization check
     const authHeader = request.headers['authorization'];
-
     if (!authHeader) {
-      throw new ServiceException('Authorization header missing', "Bad Request", HttpStatus.BAD_REQUEST);
+      throw new ServiceException(
+        'Authorization header missing',
+        "Unauthorized",
+        HttpStatus.UNAUTHORIZED
+      );
     }
-
-    const token = authHeader.replace('Bearer ', '');
-    const tokenInfo = TokenService.getTokenInfo(token);
-    const adminId = tokenInfo.sub;
-
+  
+    // 2️⃣ Pagination setup
     const offset = (page - 1) * size;
     const likeSearch = search ? `%${search}%` : '%%';
 
+    // 3️⃣ Base query condition for search
+    const baseWhere = new Brackets((qb) => {
+      qb.where('u.email LIKE :search')
+        .orWhere('u.fullName LIKE :search');
+    });
+
+    // 4️⃣ Query with pagination
     const query = this.userRepository
       .createQueryBuilder('u')
       .select([
-        'u.id',
-        'u.profile',
-        'u.email',
-        'u.fullName',
-        'u.phoneNo',
-        'u.isActive',
+        'u.id AS id',
+        'u.profile AS profile',
+        'u.email AS email',
+        'u.fullName AS fullName',
+        'u.phoneNo AS phoneNo',
+        'u.isActive AS isActive',
       ])
-      .where(
-        new Brackets((qb) => {
-          qb.where('u.email LIKE :search')
-            .orWhere('u.fullName LIKE :search');
-        }),
-      )
-      .andWhere('u.roleId = :userType')
-      .andWhere('u.adminId = :adminId')
-      .setParameters({ search: likeSearch })
+      .where(baseWhere)
       .skip(offset)
-      .take(size);
+      .take(size)
+      .setParameters({ search: likeSearch });
 
+    // 5️⃣ Count total matching records
+    const countQuery = this.userRepository
+      .createQueryBuilder('u')
+      .where(baseWhere)
+      .setParameters({ search: likeSearch });
 
     const [rawResults, total] = await Promise.all([
       query.getRawMany(),
-      this.userRepository
-        .createQueryBuilder('u')
-        .where(
-          new Brackets((qb) => {
-            qb.where('u.email LIKE :search')
-              .orWhere('u.fullName LIKE :search');
-          }),
-        )
-        .andWhere('u.roleId = :userType', { search: likeSearch})
-        .getCount(),
+      countQuery.getCount(),
     ]);
 
+    // 6️⃣ Map results to DTO
     const baseUrl = this.configService.get<string>('CLOUDINARY_BASE_URL');
 
-    const data = rawResults.map((row) =>
-      new UserResponseDto(
-        row.u_id,
-        row.u_profile ? baseUrl + row.u_profile : null,
-        row.u_email,
-        row.u_full_name,
-        row.u_phone_no,
-        row.u_is_active,
-      ),
+    const data = rawResults.map(
+      (row) =>
+        new UserResponseDto(
+          row.id,
+          row.profile ? baseUrl + row.profile : null,
+          row.email,
+          row.fullName,
+          row.phoneNo,
+          row.isActive
+        )
     );
 
+    // 7️⃣ Prepare paginated response
     const totalPages = Math.ceil(total / size);
 
-    const paginatedResponseDto = new PaginatedResponseDto<UserResponseDto>();
-    paginatedResponseDto.data = data;
-    paginatedResponseDto.currentPage = page;
-    paginatedResponseDto.totalPages = totalPages;
-    paginatedResponseDto.totalItems = total;
+    const response = new PaginatedResponseDto<UserResponseDto>();
+    response.data = data;
+    response.currentPage = page;
+    response.totalPages = totalPages;
+    response.totalItems = total;
+    response.hasNextPage = page < totalPages;
+    response.hasPreviousPage = page > 1;
 
-    return paginatedResponseDto;
+    return response;
   }
+
 
   async getUserById(userId: number): Promise<UserDto> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
@@ -200,7 +204,7 @@ export class UserService {
     if (!user) {
       throw new ServiceException('User not found', 'Bad request', HttpStatus.BAD_REQUEST);
     }
-    
+
     const baseUrl = this.configService.get<string>('CLOUDINARY_BASE_URL');
 
     return {
@@ -209,9 +213,9 @@ export class UserService {
       email: user.email,
       phoneNo: user.phoneNo,
       profile: user.profile ? baseUrl + user.profile : '',
-      
+
       address: user.address,
-      password: user.password,
+      password: "",
       roleId: user.roleId,
     };
   }

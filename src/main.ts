@@ -22,7 +22,9 @@ async function bootstrap() {
   app.enableCors();
 
   // 🔹 Listen on all network interfaces
-  await app.listen(process.env.PORT ?? 3001, '0.0.0.0'); 
+  await app.listen(process.env.PORT ?? 3001, '0.0.0.0');
+  console.log(`Server running on http://0.0.0.0:${process.env.PORT ?? 3001}`);
+
 }
 bootstrap();
 

@@ -128,8 +128,6 @@ export class RoleService {
         return response;
     }
 
-
-
     async deleteRole(id: number): Promise<ResponseDto> {
         const role = await this.roleRepository.findOne({ where: { id } });
         if (!role) throw new ServiceException('Role not found', 'Bad request', HttpStatus.BAD_REQUEST);

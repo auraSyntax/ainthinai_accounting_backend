@@ -29,9 +29,9 @@ export class AuthService {
             throw new ServiceException('User not found!', 'Unauthorized', HttpStatus.UNAUTHORIZED);
         }
 
-        if (user.isFirstLogin) {
-            throw new ServiceException('Reset your password to continue the login!', 'Unauthorized', HttpStatus.UNAUTHORIZED);
-        }
+        // if (user.isFirstLogin) {
+        //     throw new ServiceException('Reset your password to continue the login!', 'Unauthorized', HttpStatus.UNAUTHORIZED);
+        // }
 
         const isPasswordValid = await bcrypt.compare(password, user.password);
 
