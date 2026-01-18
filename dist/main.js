@@ -15,7 +15,8 @@ async function bootstrap() {
     console.log('===================================');
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
     app.useGlobalGuards(new jwt_auth_guard_1.JwtAuthGuard());
-    await app.listen(process.env.PORT ?? 3001);
+    app.enableCors();
+    await app.listen(process.env.PORT ?? 3001, '0.0.0.0');
 }
 bootstrap();
 //# sourceMappingURL=main.js.map

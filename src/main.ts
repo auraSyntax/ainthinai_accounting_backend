@@ -18,6 +18,11 @@ async function bootstrap() {
   // Register global JWT guard
   app.useGlobalGuards(new JwtAuthGuard());
 
-  await app.listen(process.env.PORT ?? 3001);
+  // Enable CORS for frontend requests (optional)
+  app.enableCors();
+
+  // 🔹 Listen on all network interfaces
+  await app.listen(process.env.PORT ?? 3001, '0.0.0.0'); 
 }
 bootstrap();
+
