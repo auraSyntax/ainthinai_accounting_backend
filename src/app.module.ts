@@ -13,6 +13,31 @@ import { RoleController } from './api/controller/role-controller';
 import { EmailService } from './service/mail.service';
 import { TokenService } from './service/token.service';
 
+// Master Data Entities
+import { Account } from './entity/account';
+import { Customer } from './entity/customer';
+import { Vendor } from './entity/vendor';
+import { Bank } from './entity/bank';
+import { PaymentMethod } from './entity/payment-method';
+import { ChequeBook } from './entity/cheque-book';
+import { Cheque } from './entity/cheque';
+
+// Master Data Controllers
+import { AccountController } from './api/controller/account-controller';
+import { CustomerController } from './api/controller/customer-controller';
+import { VendorController } from './api/controller/vendor-controller';
+import { BankController } from './api/controller/bank-controller';
+import { PaymentMethodController } from './api/controller/payment-method-controller';
+import { ChequeBookController } from './api/controller/cheque-book-controller';
+
+// Master Data Services
+import { AccountService } from './service/account-service';
+import { CustomerService } from './service/customer-service';
+import { VendorService } from './service/vendor-service';
+import { BankService } from './service/bank-service';
+import { PaymentMethodService } from './service/payment-method-service';
+import { ChequeBookService } from './service/cheque-book-service';
+
 
 @Module({
   imports: [
@@ -31,13 +56,13 @@ import { TokenService } from './service/token.service';
         username: configService.get<string>('DB_USERNAME'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
-        entities: [User,Role],
+        entities: [User, Role, Account, Customer, Vendor, Bank, PaymentMethod, ChequeBook, Cheque],
         synchronize: false,
         logging: true,
       }),
     }),
 
-    TypeOrmModule.forFeature([User,Role]),
+    TypeOrmModule.forFeature([User, Role, Account, Customer, Vendor, Bank, PaymentMethod, ChequeBook, Cheque]),
 
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -48,7 +73,7 @@ import { TokenService } from './service/token.service';
       }),
     }),
   ],
-  controllers: [AuthController,RoleController,UserController],
-  providers: [AuthService,RoleService,UserService,EmailService,TokenService],
+  controllers: [AuthController, RoleController, UserController, AccountController, CustomerController, VendorController, BankController, PaymentMethodController, ChequeBookController],
+  providers: [AuthService, RoleService, UserService, EmailService, TokenService, AccountService, CustomerService, VendorService, BankService, PaymentMethodService, ChequeBookService],
 })
 export class AppModule {}
