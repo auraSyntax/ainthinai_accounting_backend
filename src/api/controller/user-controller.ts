@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, HttpStatus, Param, ParseIntPipe, Post, Put, Query, Req } from "@nestjs/common";
 import { UserService } from "src/service/user-service";
 import { UserDto } from "../dto/user.dto";
-import { ResponseDto } from "../dto/response.dto";
+import { ApiResponse } from "../dto/response.dto";
 import { PaginatedResponseDto } from "../dto/paginated.response.dto";
 import { UserResponseDto } from "../dto/user.response.dto";
 import { ServiceException } from "src/exception/service-exception";
@@ -13,45 +13,60 @@ export class UserController {
     constructor(private readonly userService: UserService) { }
 
     @Post()
-    async createUser(@Body() userDto: UserDto, @Req() request: Request): Promise<ResponseDto> {
-        return this.userService.createUser(userDto, request);
+    async createUser(@Body() userDto: UserDto, @Req() request: Request) {
+        const data = await this.userService.createUser(userDto, request);
+        return ApiResponse.created(data, 'User created successfully');
     }
 
     @Get()
-    async getAllUsers(@Query('page', ParseIntPipe) page: number, @Query('size', ParseIntPipe) size: number, @Query('search') search: string, @Req() request: Request): Promise<PaginatedResponseDto<UserResponseDto>> {
-        return this.userService.getAllUsers(page, size, search, request);
+    async getAllUsers(@Query('page', ParseIntPipe) page: number, @Query('size', ParseIntPipe) size: number, @Query('search') search: string, @Req() request: Request) {
+        const data = await this.userService.getAllUsers(page, size, search, request);
+        return ApiResponse.success(
+            data.data, 
+            'Users fetched successfully',
+            200,
+            {
+                page: data.currentPage,
+                limit: Math.ceil(data.totalItems / data.data.length),
+                total: data.totalItems
+            }
+        );
     }
 
     @Get('user-by-id')
-    async getUserById(@Query('userId') userId: number): Promise<UserDto> {
+    async getUserById(@Query('userId') userId: number) {
         if (!userId) {
-            throw new ServiceException("userId can't be blank", "Bad Request", HttpStatus.BAD_REQUEST);
+            throw new ServiceException([{message: "userId can't be blank"}], "Bad Request", HttpStatus.BAD_REQUEST);
         }
-        return this.userService.getUserById(userId);
+        const data = await this.userService.getUserById(userId);
+        return ApiResponse.success(data, 'User fetched successfully');
     }
 
     @Delete(':userId')
-    async deleteUser(@Param('userId') userId: number): Promise<ResponseDto> {
+    async deleteUser(@Param('userId') userId: number) {
         if (!userId) {
-            throw new ServiceException("userId can't be blank", "Bad Request", HttpStatus.BAD_REQUEST);
+            throw new ServiceException([{message: "userId can't be blank"}], "Bad Request", HttpStatus.BAD_REQUEST);
         }
-        return this.userService.deleteUser(userId);
+        await this.userService.deleteUser(userId);
+        return ApiResponse.success(null, 'User deleted successfully');
     }
 
     @Put()
-    async updateUserStatus(@Query('id') id: string, @Query('status') status: string): Promise<ResponseDto> {
+    async updateUserStatus(@Query('id') id: string, @Query('status') status: string) {
         const parsedStatus = status === '1' ? true : false;
-
-        return this.userService.updateUserStatus(id, parsedStatus);
+        await this.userService.updateUserStatus(id, parsedStatus);
+        return ApiResponse.success(null, 'User status updated successfully');
     }
 
     @Put('user-credentials')
-    async updateUserCredentials(@Body() dto: UpdateCredentialsDto): Promise<ResponseDto> {
-        return this.userService.updateUserCredentials(dto);
+    async updateUserCredentials(@Body() dto: UpdateCredentialsDto) {
+        await this.userService.updateUserCredentials(dto);
+        return ApiResponse.success(null, 'User credentials updated successfully');
     }
 
     @Get('current-user')
-    async getCurrentUserDetails(@Req() request: Request): Promise<CurrentUserDetailsDto> {
-        return this.userService.getCurrentUserDetails(request);
+    async getCurrentUserDetails(@Req() request: Request) {
+        const data = await this.userService.getCurrentUserDetails(request);
+        return ApiResponse.success(data, 'Current user details fetched successfully');
     }
 }

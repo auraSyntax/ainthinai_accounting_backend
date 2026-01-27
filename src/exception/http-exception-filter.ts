@@ -10,12 +10,7 @@ import {
 import { Response } from 'express';
 import { MulterError } from 'multer';
 import { ServiceException } from './service-exception';
-
-interface ApiError {
-  status: number;
-  message: string;
-  errors: string[];
-}
+import { ApiResponse, ApiErrorDetail } from '../api/dto/response.dto';
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -24,40 +19,58 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
-    let apiError: ApiError;
+    let message = 'Internal server error';
+    let errors: ApiErrorDetail[] = [];
 
     if (exception instanceof ServiceException) {
       status = exception.getStatus();
-      apiError = {
-        status,
-        message: exception.headerMessage,
-        errors: exception.errors,
-      };
+      message = exception.headerMessage;
+      errors = exception.errors;
     } else if (exception instanceof HttpException) {
       status = exception.getStatus();
       const res: any = exception.getResponse();
-      const errors = Array.isArray(res.message) ? res.message : [res.message];
-      apiError = {
-        status,
-        message: res.error || 'HTTP Exception',
-        errors,
-      };
+      
+      // Handle validation errors from class-validator
+      if (Array.isArray(res.message)) {
+        message = 'Validation failed';
+        errors = res.message.map((msg: any) => {
+          if (typeof msg === 'object' && msg.property) {
+            return {
+              field: msg.property,
+              message: Object.values(msg.constraints || {}).join(', ') || msg.message
+            };
+          }
+          return { message: String(msg) };
+        });
+      } else {
+        message = res.error || res.message || 'HTTP Exception';
+        errors = [{ message: res.message || 'An error occurred' }];
+      }
+
+      // Set appropriate error codes based on status
+      if (status === HttpStatus.UNAUTHORIZED) {
+        errors = [{ code: 'AUTH_401', message: res.message || 'Invalid or expired token' }];
+      } else if (status === HttpStatus.FORBIDDEN) {
+        errors = [{ code: 'FORBIDDEN', message: res.message || 'You do not have permission to perform this action' }];
+      } else if (status === HttpStatus.NOT_FOUND) {
+        errors = [{ code: 'NOT_FOUND', message: res.message || 'Resource not found' }];
+      } else if (status === HttpStatus.CONFLICT) {
+        errors = [{ code: 'DUPLICATE_ENTRY', message: res.message || 'Resource already exists' }];
+      }
     } else if (exception instanceof MulterError) {
-      // for file size limit exceptions
       status = HttpStatus.BAD_REQUEST;
-      apiError = {
-        status,
-        message: 'File Upload Error',
-        errors: [exception.message],
-      };
+      message = 'File upload error';
+      errors = [{ message: exception.message }];
     } else {
-      apiError = {
-        status,
-        message: 'Internal Server Error',
-        errors: ['Internal Service Exception'],
-      };
+      status = HttpStatus.INTERNAL_SERVER_ERROR;
+      message = 'Internal server error';
+      errors = [{ 
+        code: 'SERVER_ERROR', 
+        message: 'Something went wrong. Please try again later.' 
+      }];
     }
 
-    response.status(status).json(apiError);
+    const errorResponse = ApiResponse.error(message, status, errors);
+    response.status(status).json(errorResponse);
   }
 }

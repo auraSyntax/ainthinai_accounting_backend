@@ -2,6 +2,7 @@ import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards } from '@nes
 import { VendorService } from '../../service/vendor-service';
 import { CreateVendorDto, UpdateVendorDto } from '../dto/vendor.dto';
 import { JwtAuthGuard } from '../../security/jwt-auth.guard';
+import { ApiResponse } from '../dto/response.dto';
 
 @Controller('api/v1/vendors')
 @UseGuards(JwtAuthGuard)
@@ -10,27 +11,31 @@ export class VendorController {
 
   @Post()
   async create(@Body() createDto: CreateVendorDto) {
-    return await this.vendorService.create(createDto);
+    const data = await this.vendorService.create(createDto);
+    return ApiResponse.created(data, 'Vendor created successfully');
   }
 
   @Get()
   async findAll() {
-    return await this.vendorService.findAll();
+    const data = await this.vendorService.findAll();
+    return ApiResponse.success(data, 'Vendors fetched successfully');
   }
 
   @Get(':id')
   async findById(@Param('id') id: number) {
-    return await this.vendorService.findById(id);
+    const data = await this.vendorService.findById(id);
+    return ApiResponse.success(data, 'Vendor fetched successfully');
   }
 
   @Put(':id')
   async update(@Param('id') id: number, @Body() updateDto: UpdateVendorDto) {
-    return await this.vendorService.update(id, updateDto);
+    const data = await this.vendorService.update(id, updateDto);
+    return ApiResponse.success(data, 'Vendor updated successfully');
   }
 
   @Delete(':id')
   async disable(@Param('id') id: number) {
     await this.vendorService.disable(id);
-    return { message: 'Vendor disabled successfully' };
+    return ApiResponse.success(null, 'Vendor disabled successfully');
   }
 }
