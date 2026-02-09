@@ -6,14 +6,25 @@ class ServiceException extends common_1.HttpException {
     headerMessage;
     errors;
     constructor(messageOrErrors, headerMessage, status) {
-        const combinedMessage = Array.isArray(messageOrErrors)
-            ? messageOrErrors.join('; ')
-            : messageOrErrors;
+        let combinedMessage;
+        let structuredErrors;
+        if (Array.isArray(messageOrErrors)) {
+            if (messageOrErrors.length > 0 && typeof messageOrErrors[0] === 'object') {
+                structuredErrors = messageOrErrors;
+                combinedMessage = structuredErrors.map(e => e.message).join('; ');
+            }
+            else {
+                structuredErrors = messageOrErrors.map(msg => ({ message: msg }));
+                combinedMessage = messageOrErrors.join('; ');
+            }
+        }
+        else {
+            combinedMessage = messageOrErrors;
+            structuredErrors = [{ message: messageOrErrors }];
+        }
         super(combinedMessage, status);
         this.headerMessage = headerMessage;
-        this.errors = Array.isArray(messageOrErrors)
-            ? messageOrErrors
-            : [messageOrErrors];
+        this.errors = structuredErrors;
     }
 }
 exports.ServiceException = ServiceException;

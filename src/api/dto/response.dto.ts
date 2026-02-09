@@ -69,6 +69,7 @@ export class ApiResponse<T = any> {
 
 // Legacy support
 export class ResponseDto {
+  id: number;
   message: string;
 
   constructor(message: string) {

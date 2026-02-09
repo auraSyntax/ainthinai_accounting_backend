@@ -29,6 +29,8 @@ import { VendorController } from './api/controller/vendor-controller';
 import { BankController } from './api/controller/bank-controller';
 import { PaymentMethodController } from './api/controller/payment-method-controller';
 import { ChequeBookController } from './api/controller/cheque-book-controller';
+import { FileController } from './api/controller/file-controller';
+
 
 // Master Data Services
 import { AccountService } from './service/account-service';
@@ -37,6 +39,7 @@ import { VendorService } from './service/vendor-service';
 import { BankService } from './service/bank-service';
 import { PaymentMethodService } from './service/payment-method-service';
 import { ChequeBookService } from './service/cheque-book-service';
+import { FileService } from './service/file.service';
 
 
 @Module({
@@ -73,7 +76,7 @@ import { ChequeBookService } from './service/cheque-book-service';
       }),
     }),
   ],
-  controllers: [AuthController, RoleController, UserController, AccountController, CustomerController, VendorController, BankController, PaymentMethodController, ChequeBookController],
-  providers: [AuthService, RoleService, UserService, EmailService, TokenService, AccountService, CustomerService, VendorService, BankService, PaymentMethodService, ChequeBookService],
+  controllers: [AuthController, RoleController, UserController, AccountController, CustomerController, VendorController, BankController, PaymentMethodController, ChequeBookController, FileController],
+  providers: [AuthService, RoleService, UserService, EmailService, TokenService, AccountService, CustomerService, VendorService, BankService, PaymentMethodService, ChequeBookService, FileService],
 })
 export class AppModule {}

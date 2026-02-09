@@ -15,10 +15,10 @@ export class RoleService {
     ) { }
 
     async createOrUpdateRole(roleDto: RoleDto): Promise<ResponseDto> {
-
         let role: Role | null;
 
         if (roleDto.id) {
+            // Update flow
             role = await this.roleRepository.findOne({
                 where: { id: roleDto.id }
             });
@@ -33,17 +33,23 @@ export class RoleService {
 
             await this.roleRepository.save(role);
 
-            return new ResponseDto('Role updated successfully');
+            const res = new ResponseDto('Role updated successfully');
+            res.id = role.id;
+            return res;
         }
 
+        // Create flow
         role = this.roleRepository.create({
             roleName: roleDto.roleName,
-            roleDescription: roleDto.roleDescription
+            roleDescription: roleDto.roleDescription,
+            status: true
         });
 
         await this.roleRepository.save(role);
 
-        return new ResponseDto('Role created successfully');
+        const res = new ResponseDto('Role created successfully');
+        res.id = role.id;
+        return res;
     }
 
     async getRoleById(id: number): Promise<RoleDto> {

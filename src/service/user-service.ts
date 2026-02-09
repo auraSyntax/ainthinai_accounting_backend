@@ -13,6 +13,7 @@ import { PaginatedResponseDto } from "src/api/dto/paginated.response.dto";
 import { UserResponseDto } from "src/api/dto/user.response.dto";
 import { UpdateCredentialsDto } from "src/api/dto/user.credentials.dto";
 import { CurrentUserDetailsDto } from "src/api/dto/current-user-details.dto";
+import { UpdatePasswordDto } from "src/api/dto/update-password-dto";
 
 @Injectable()
 export class UserService {
@@ -121,7 +122,6 @@ export class UserService {
     request: Request
   ): Promise<PaginatedResponseDto<UserResponseDto>> {
 
-    // 1️⃣ Authorization check
     const authHeader = request.headers['authorization'];
     if (!authHeader) {
       throw new ServiceException(
@@ -130,20 +130,18 @@ export class UserService {
         HttpStatus.UNAUTHORIZED
       );
     }
-  
-    // 2️⃣ Pagination setup
+
     const offset = (page - 1) * size;
     const likeSearch = search ? `%${search}%` : '%%';
 
-    // 3️⃣ Base query condition for search
     const baseWhere = new Brackets((qb) => {
       qb.where('u.email LIKE :search')
         .orWhere('u.fullName LIKE :search');
     });
 
-    // 4️⃣ Query with pagination
     const query = this.userRepository
       .createQueryBuilder('u')
+      .leftJoinAndSelect('Role', 'r', 'r.id = u.roleId')
       .select([
         'u.id AS id',
         'u.profile AS profile',
@@ -151,13 +149,14 @@ export class UserService {
         'u.fullName AS fullName',
         'u.phoneNo AS phoneNo',
         'u.isActive AS isActive',
+        'u.roleId AS roleId',
+        'r.roleName AS roleName',
       ])
       .where(baseWhere)
       .skip(offset)
       .take(size)
       .setParameters({ search: likeSearch });
 
-    // 5️⃣ Count total matching records
     const countQuery = this.userRepository
       .createQueryBuilder('u')
       .where(baseWhere)
@@ -168,22 +167,22 @@ export class UserService {
       countQuery.getCount(),
     ]);
 
-    // 6️⃣ Map results to DTO
     const baseUrl = this.configService.get<string>('CLOUDINARY_BASE_URL');
 
     const data = rawResults.map(
       (row) =>
         new UserResponseDto(
-          row.id,
+          row.id.toString(),
           row.profile ? baseUrl + row.profile : null,
           row.email,
           row.fullName,
           row.phoneNo,
-          row.isActive
+          row.isActive,
+          row.roleId,
+          row.roleName
         )
     );
 
-    // 7️⃣ Prepare paginated response
     const totalPages = Math.ceil(total / size);
 
     const response = new PaginatedResponseDto<UserResponseDto>();
@@ -196,6 +195,7 @@ export class UserService {
 
     return response;
   }
+
 
 
   async getUserById(userId: number): Promise<UserDto> {
@@ -321,5 +321,38 @@ export class UserService {
       activeCompanies: parseInt(result.activeCount, 10),
       userType: result.userType === 'SUPER_ADMIN' ? 'SUPER ADMIN' : result.userType,
     };
+  }
+
+  async updatePassword(
+    userId: number,
+    updatePasswordDto: UpdatePasswordDto
+  ): Promise<ResponseDto> {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new ServiceException(
+        'User not found',
+        'Not Found',
+        HttpStatus.NOT_FOUND
+      );
+    }
+
+    if (updatePasswordDto.oldPassword) {
+      const isMatch = await bcrypt.compare(updatePasswordDto.oldPassword, user.password);
+      if (!isMatch) {
+        throw new ServiceException(
+          'Old password is incorrect',
+          'Bad Request',
+          HttpStatus.BAD_REQUEST
+        );
+      }
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(updatePasswordDto.newPassword, salt);
+
+    user.password = hashedPassword;
+    await this.userRepository.save(user);
+
+    return new ResponseDto('Password updated successfully');
   }
 }

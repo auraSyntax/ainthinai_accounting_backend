@@ -1,6 +1,7 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
+import { ApiErrorDetail } from '../api/dto/response.dto';
 export declare class ServiceException extends HttpException {
     readonly headerMessage: string;
-    readonly errors: string[];
-    constructor(messageOrErrors: string | string[], headerMessage: string, status: HttpStatus);
+    readonly errors: ApiErrorDetail[];
+    constructor(messageOrErrors: string | string[] | ApiErrorDetail[], headerMessage: string, status: HttpStatus);
 }

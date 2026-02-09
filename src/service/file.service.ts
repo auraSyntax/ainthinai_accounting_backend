@@ -1,0 +1,104 @@
+import { HttpStatus, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
+import { ServiceException } from 'src/exception/service-exception';
+
+@Injectable()
+export class FileService {
+  private readonly baseUrl: string;
+
+  constructor(private configService: ConfigService) {
+    cloudinary.config({
+      cloud_name: this.configService.get('CLOUDINARY_CLOUD_NAME'),
+      api_key: this.configService.get('CLOUDINARY_API_KEY'),
+      api_secret: this.configService.get('CLOUDINARY_API_SECRET'),
+    });
+    this.baseUrl = this.configService.get<string>('CLOUDINARY_BASE_URL')!;
+  }
+
+  async uploadFile(file: Express.Multer.File): Promise<{ imageUrl: string; imageUrlWithDomain: string }> {
+    return new Promise((resolve, reject) => {
+      const originalNameWithoutExt = file.originalname.replace(/\.[^/.]+$/, '');
+      const publicId = originalNameWithoutExt;
+
+      cloudinary.uploader.upload_stream(
+        {
+          resource_type: 'auto',
+          public_id: publicId,
+          overwrite: true,
+        },
+        (error, result: UploadApiResponse) => {
+          if (error) {
+            reject(error);
+          } else {
+            const baseUrl = this.baseUrl;
+            const relativePath = result.secure_url.replace(baseUrl, '');
+
+            resolve({
+              imageUrl: relativePath,
+              imageUrlWithDomain: result.secure_url,
+            });
+          }
+        }
+      ).end(file.buffer);
+    });
+  }
+
+  async deleteFile(imageUrl: string): Promise<string> {
+    try {
+      const publicId = this.extractPublicId(imageUrl);
+      if (!publicId) {
+        throw new ServiceException(
+          'Invalid image URL',
+          'Bad Request',
+          HttpStatus.BAD_REQUEST
+        );
+      }
+
+      const result = await cloudinary.uploader.destroy(publicId);
+
+      if (result.result !== 'ok' && result.result !== 'not found') {
+        // 'not found' is not an error, image is already gone
+        throw new ServiceException(
+          `Failed to delete image: ${result.result}`,
+          'Bad Request',
+          HttpStatus.BAD_REQUEST
+        );
+      }
+
+      return 'Image deleted successfully';
+    } catch (error: any) {
+      throw new ServiceException(
+        error.message || 'Unknown error',
+        'Internal Server Error',
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+  private extractPublicId(url: string): string | null {
+    try {
+      if (!url.startsWith(this.baseUrl)) return null;
+
+      let publicIdWithVersion = url.replace(this.baseUrl, '');
+      // Remove version if exists (e.g., v1770619005/)
+      const versionMatch = publicIdWithVersion.match(/^v\d+\//);
+      if (versionMatch) {
+        publicIdWithVersion = publicIdWithVersion.replace(versionMatch[0], '');
+      }
+
+      // Remove file extension
+      const lastDotIndex = publicIdWithVersion.lastIndexOf('.');
+      const publicId = decodeURIComponent(
+        lastDotIndex !== -1
+          ? publicIdWithVersion.substring(0, lastDotIndex)
+          : publicIdWithVersion
+      );
+
+      return publicId;
+    } catch {
+      return null;
+    }
+  }
+
+}

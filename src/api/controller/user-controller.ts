@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpStatus, Param, ParseIntPipe, Post, Put, Query, Req } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpStatus, Param, ParseIntPipe, Patch, Post, Put, Query, Req } from "@nestjs/common";
 import { UserService } from "src/service/user-service";
 import { UserDto } from "../dto/user.dto";
 import { ApiResponse } from "../dto/response.dto";
@@ -7,6 +7,7 @@ import { UserResponseDto } from "../dto/user.response.dto";
 import { ServiceException } from "src/exception/service-exception";
 import { UpdateCredentialsDto } from "../dto/user.credentials.dto";
 import { CurrentUserDetailsDto } from "../dto/current-user-details.dto";
+import { UpdatePasswordDto } from "../dto/update-password-dto";
 
 @Controller('api/v1/users')
 export class UserController {
@@ -22,7 +23,7 @@ export class UserController {
     async getAllUsers(@Query('page', ParseIntPipe) page: number, @Query('size', ParseIntPipe) size: number, @Query('search') search: string, @Req() request: Request) {
         const data = await this.userService.getAllUsers(page, size, search, request);
         return ApiResponse.success(
-            data.data, 
+            data.data,
             'Users fetched successfully',
             200,
             {
@@ -36,7 +37,7 @@ export class UserController {
     @Get('user-by-id')
     async getUserById(@Query('userId') userId: number) {
         if (!userId) {
-            throw new ServiceException([{message: "userId can't be blank"}], "Bad Request", HttpStatus.BAD_REQUEST);
+            throw new ServiceException([{ message: "userId can't be blank" }], "Bad Request", HttpStatus.BAD_REQUEST);
         }
         const data = await this.userService.getUserById(userId);
         return ApiResponse.success(data, 'User fetched successfully');
@@ -45,7 +46,7 @@ export class UserController {
     @Delete(':userId')
     async deleteUser(@Param('userId') userId: number) {
         if (!userId) {
-            throw new ServiceException([{message: "userId can't be blank"}], "Bad Request", HttpStatus.BAD_REQUEST);
+            throw new ServiceException([{ message: "userId can't be blank" }], "Bad Request", HttpStatus.BAD_REQUEST);
         }
         await this.userService.deleteUser(userId);
         return ApiResponse.success(null, 'User deleted successfully');
@@ -68,5 +69,14 @@ export class UserController {
     async getCurrentUserDetails(@Req() request: Request) {
         const data = await this.userService.getCurrentUserDetails(request);
         return ApiResponse.success(data, 'Current user details fetched successfully');
+    }
+
+    @Patch('/:id/password')
+    async updatePassword(
+        @Param('id', ParseIntPipe) id: number,
+        @Body() updatePasswordDto: UpdatePasswordDto
+    ) {
+        const message = await this.userService.updatePassword(id, updatePasswordDto);
+        return ApiResponse.success(message, 'Password updated successfully');
     }
 }
