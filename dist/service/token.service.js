@@ -9,7 +9,7 @@ class TokenService {
             return decoded;
         }
         catch (error) {
-            console.error(...oo_tx(`2294482050_23_6_23_53_11`, 'Failed to decode token:', error));
+            console.error('Failed to decode token:', error);
             return null;
         }
     }

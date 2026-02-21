@@ -42,6 +42,10 @@ const bank_service_1 = require("./service/bank-service");
 const payment_method_service_1 = require("./service/payment-method-service");
 const cheque_book_service_1 = require("./service/cheque-book-service");
 const file_service_1 = require("./service/file.service");
+const invoice_1 = require("./entity/invoice");
+const invoice_line_item_1 = require("./entity/invoice-line-item");
+const invoice_controller_1 = require("./api/controller/invoice-controller");
+const invoice_service_1 = require("./service/invoice-service");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -62,12 +66,12 @@ exports.AppModule = AppModule = __decorate([
                     username: configService.get('DB_USERNAME'),
                     password: configService.get('DB_PASSWORD'),
                     database: configService.get('DB_NAME'),
-                    entities: [user_1.User, role_1.Role, account_1.Account, customer_1.Customer, vendor_1.Vendor, bank_1.Bank, payment_method_1.PaymentMethod, cheque_book_1.ChequeBook, cheque_1.Cheque],
+                    entities: [user_1.User, role_1.Role, account_1.Account, customer_1.Customer, vendor_1.Vendor, bank_1.Bank, payment_method_1.PaymentMethod, cheque_book_1.ChequeBook, cheque_1.Cheque, invoice_1.Invoice, invoice_line_item_1.InvoiceLineItem],
                     synchronize: false,
                     logging: true,
                 }),
             }),
-            typeorm_1.TypeOrmModule.forFeature([user_1.User, role_1.Role, account_1.Account, customer_1.Customer, vendor_1.Vendor, bank_1.Bank, payment_method_1.PaymentMethod, cheque_book_1.ChequeBook, cheque_1.Cheque]),
+            typeorm_1.TypeOrmModule.forFeature([user_1.User, role_1.Role, account_1.Account, customer_1.Customer, vendor_1.Vendor, bank_1.Bank, payment_method_1.PaymentMethod, cheque_book_1.ChequeBook, cheque_1.Cheque, invoice_1.Invoice, invoice_line_item_1.InvoiceLineItem]),
             jwt_1.JwtModule.registerAsync({
                 imports: [config_1.ConfigModule],
                 inject: [config_1.ConfigService],
@@ -77,8 +81,8 @@ exports.AppModule = AppModule = __decorate([
                 }),
             }),
         ],
-        controllers: [auth_controller_1.AuthController, role_controller_1.RoleController, user_controller_1.UserController, account_controller_1.AccountController, customer_controller_1.CustomerController, vendor_controller_1.VendorController, bank_controller_1.BankController, payment_method_controller_1.PaymentMethodController, cheque_book_controller_1.ChequeBookController, file_controller_1.FileController],
-        providers: [auth_service_1.AuthService, role_service_1.RoleService, user_service_1.UserService, mail_service_1.EmailService, token_service_1.TokenService, account_service_1.AccountService, customer_service_1.CustomerService, vendor_service_1.VendorService, bank_service_1.BankService, payment_method_service_1.PaymentMethodService, cheque_book_service_1.ChequeBookService, file_service_1.FileService],
+        controllers: [auth_controller_1.AuthController, role_controller_1.RoleController, user_controller_1.UserController, account_controller_1.AccountController, customer_controller_1.CustomerController, vendor_controller_1.VendorController, bank_controller_1.BankController, payment_method_controller_1.PaymentMethodController, cheque_book_controller_1.ChequeBookController, file_controller_1.FileController, invoice_controller_1.InvoiceController],
+        providers: [auth_service_1.AuthService, role_service_1.RoleService, user_service_1.UserService, mail_service_1.EmailService, token_service_1.TokenService, account_service_1.AccountService, customer_service_1.CustomerService, vendor_service_1.VendorService, bank_service_1.BankService, payment_method_service_1.PaymentMethodService, cheque_book_service_1.ChequeBookService, file_service_1.FileService, invoice_service_1.InvoiceService],
     })
 ], AppModule);
 //# sourceMappingURL=app.module.js.map

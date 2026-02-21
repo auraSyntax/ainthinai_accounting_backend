@@ -41,6 +41,16 @@ import { PaymentMethodService } from './service/payment-method-service';
 import { ChequeBookService } from './service/cheque-book-service';
 import { FileService } from './service/file.service';
 
+// Invoice Entities
+import { Invoice } from './entity/invoice';
+import { InvoiceLineItem } from './entity/invoice-line-item';
+
+// Invoice Controller
+import { InvoiceController } from './api/controller/invoice-controller';
+
+// Invoice Service
+import { InvoiceService } from './service/invoice-service';
+
 
 @Module({
   imports: [
@@ -59,13 +69,13 @@ import { FileService } from './service/file.service';
         username: configService.get<string>('DB_USERNAME'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
-        entities: [User, Role, Account, Customer, Vendor, Bank, PaymentMethod, ChequeBook, Cheque],
+        entities: [User, Role, Account, Customer, Vendor, Bank, PaymentMethod, ChequeBook, Cheque, Invoice, InvoiceLineItem],
         synchronize: false,
         logging: true,
       }),
     }),
 
-    TypeOrmModule.forFeature([User, Role, Account, Customer, Vendor, Bank, PaymentMethod, ChequeBook, Cheque]),
+    TypeOrmModule.forFeature([User, Role, Account, Customer, Vendor, Bank, PaymentMethod, ChequeBook, Cheque, Invoice, InvoiceLineItem]),
 
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -76,7 +86,7 @@ import { FileService } from './service/file.service';
       }),
     }),
   ],
-  controllers: [AuthController, RoleController, UserController, AccountController, CustomerController, VendorController, BankController, PaymentMethodController, ChequeBookController, FileController],
-  providers: [AuthService, RoleService, UserService, EmailService, TokenService, AccountService, CustomerService, VendorService, BankService, PaymentMethodService, ChequeBookService, FileService],
+  controllers: [AuthController, RoleController, UserController, AccountController, CustomerController, VendorController, BankController, PaymentMethodController, ChequeBookController, FileController, InvoiceController],
+  providers: [AuthService, RoleService, UserService, EmailService, TokenService, AccountService, CustomerService, VendorService, BankService, PaymentMethodService, ChequeBookService, FileService, InvoiceService],
 })
 export class AppModule {}
