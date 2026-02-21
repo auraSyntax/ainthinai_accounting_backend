@@ -1,9 +1,0 @@
-export declare class AuthResponseDto {
-    jwtToken: string;
-    refreshToken: string;
-    userName: string;
-    expirationTime: string;
-    email: string;
-    roleId?: number;
-    profile: string;
-}
